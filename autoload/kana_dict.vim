@@ -1,5 +1,9 @@
 " vim:set fen fdm=marker:
 
+function! kana_dict#get()
+    return s:kana_dict
+endf
+
 " kana_dictionary {{{1
 let s:kana_dict = {
 \'a'    : "ア",
@@ -257,3 +261,5 @@ let s:kana_dict = {
 \']': "」",
 \'thi'  : "ティ",
 \} "}}}1
+
+

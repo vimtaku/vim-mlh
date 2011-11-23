@@ -257,3 +257,7 @@ let s:hira_dict = {
 \'thi'  : "てぃ",
 \}
 " }}}1
+
+function! hira_dict#get()
+    return s:hira_dict
+endf
