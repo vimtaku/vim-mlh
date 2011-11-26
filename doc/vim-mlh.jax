@@ -1,0 +1,15 @@
+vim-mlh.txt
+
+Author: vimtaku <vimtaku@gmail.com>
+License: not decided yet.
+
+INTRODUCTION						*vim-mlh-introduction*
+
+vim-mlh はローマ字を日本語文字列に変換するツールです。
+emacs のmlh.el のようなものをvim でも行うためのものになります。
+
+
+CHANGELOG					*vim-mlh-changelog*
+
+2011-11-23 Initial commit.
+
