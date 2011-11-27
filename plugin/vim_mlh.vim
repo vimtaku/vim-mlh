@@ -3,18 +3,32 @@
 let s:hira_dict = hira_dict#get()
 let s:kana_dict = kana_dict#get()
 
+let g:mlh_enable = 1
 inoremap <silent> f/  <C-R>=<SID>hookBackSlash('hira')<CR>
 inoremap <silent> k/  <C-R>=<SID>hookBackSlash('kana')<CR>
 inoremap <silent> / <C-R>=<SID>completeTransliterate(<SID>hookBackSlash('hira'))<CR>
 
-""TODO
-" bug fix
-" vim とのシームレス感半端じゃないと思うんですよ。
-" - 文中の中のローマ字を上手いこと対応する。
-" - ,っていたときに何故かうまいこと変換できなくなる点を修正する
+command! ToggleMlhKeymap :call <SID>toggle_vim_mlh_map()
+nnoremap mm :call <SID>toggle_vim_mlh_map()<CR>
 
 
-"" 日本語を受けてコンプリート出す
+function! s:toggle_vim_mlh_map()
+    if g:mlh_enable == 0
+        let g:mlh_enable = 1
+        inoremap <silent> f/  <C-R>=<SID>hookBackSlash('hira')<CR>
+        inoremap <silent> k/  <C-R>=<SID>hookBackSlash('kana')<CR>
+        inoremap <silent> / <C-R>=<SID>completeTransliterate(<SID>hookBackSlash('hira'))<CR>
+        echo "mlh enable!"
+    else
+        let g:mlh_enable = 0
+        iunmap f/
+        iunmap k/
+        iunmap /
+        echo "mlh disable!"
+    endif
+endfunction
+
+
 function! s:completeTransliterate(str)
     let ary = g:GoogleTransliterate(a:str)
     for candidates in (ary)
@@ -68,23 +82,27 @@ endf
 function! s:hookBackSlash(dict_prefix)
     let tmp_reg = @"
     let tmp_virtualedit = &virtualedit
-    let tmp_iskeyword = &iskeyword
+    let tmp_iskeyword = &l:iskeyword
     execute("let dict=s:". a:dict_prefix ."_dict")
 
     try
         set virtualedit=all
-        set iskeyword="@"
+        setlocal iskeyword+=-
+        setlocal iskeyword+=,
+        setlocal iskeyword+=.
+
         normal vby
         let cword = expand("<cword>")
 
-        execute 'normal!' '`['. 'v' .'`]"_d'
+        execute 'normal!' '`['. 'v' .'`]h"_d'
         let jp_str = s:translateJapanese(dict, cword)
-
         return jp_str
     finally
         "" back
-        execute "set iskeyword=" . tmp_iskeyword
+        execute "setlocal iskeyword=" . tmp_iskeyword
         execute "set virtualedit=" . tmp_virtualedit
+        let @" = tmp_reg
+        let @* = tmp_reg
     endtry
 endf
 
