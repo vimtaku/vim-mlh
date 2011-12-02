@@ -1,5 +1,9 @@
 " vim:set fen fdm=marker:
 
+function! hira_dict#get()
+    return s:hira_dict
+endf
+
 " hira_dictionary {{{1
 let s:hira_dict = {
 \'a'    : "あ",
@@ -47,10 +51,16 @@ let s:hira_dict = {
 \'zo'   : "ぞ",
 \'zya'  : "じゃ",
 \'jya'  : "じゃ",
+\'ja'   : "じゃ",
 \'zyu'  : "じゅ",
 \'jyu'  : "じゅ",
+\'ju'   : "じゅ",
+\'zye'  : "じぇ",
+\'jye'  : "じぇ",
+\'je'   : "じぇ",
 \'zyo'  : "じょ",
 \'jyo'  : "じょ",
+\'jo'  : "じょ",
 \'ta'   : "た",
 \'ti'   : "ち",
 \'chi'  : "ち",
@@ -64,6 +74,8 @@ let s:hira_dict = {
 \'chu'  : "ちゅ",
 \'tyo'  : "ちょ",
 \'cho'  : "ちょ",
+\'tye'  : "ちぇ",
+\'che'  : "ちぇ",
 \'da'   : "だ",
 \'di'   : "ぢ",
 \'du'   : "づ",
@@ -166,7 +178,9 @@ let s:hira_dict = {
 \'sse'  : "っせ",
 \'sso'  : "っそ",
 \'ssya' : "っしゃ",
+\'ssha' : "っしゃ",
 \'ssyu' : "っしゅ",
+\'sshu' : "っしゅ",
 \'ssyo' : "っしょ",
 \'ssho' : "っしょ",
 \'zza'  : "っざ",
@@ -265,6 +279,3 @@ let s:hira_dict = {
 \}
 " }}}1
 
-function! hira_dict#get()
-    return s:hira_dict
-endf

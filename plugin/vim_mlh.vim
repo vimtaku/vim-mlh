@@ -3,30 +3,44 @@
 let s:hira_dict = hira_dict#get()
 let s:kana_dict = kana_dict#get()
 
-let g:mlh_enable = 1
-inoremap <silent> f/  <C-R>=<SID>hookBackSlash('hira')<CR>
-inoremap <silent> k/  <C-R>=<SID>hookBackSlash('kana')<CR>
-inoremap <silent> / <C-R>=<SID>completeTransliterate(<SID>hookBackSlash('hira'))<CR>
 
 command! ToggleMlhKeymap :call <SID>toggle_vim_mlh_map()
 nnoremap mm :call <SID>toggle_vim_mlh_map()<CR>
+inoremap ./ <C-R>=<SID>toggle_vim_mlh_map()<CR><BS>
 
 
 function! s:toggle_vim_mlh_map()
     if g:mlh_enable == 0
         let g:mlh_enable = 1
-        inoremap <silent> f/  <C-R>=<SID>hookBackSlash('hira')<CR>
-        inoremap <silent> k/  <C-R>=<SID>hookBackSlash('kana')<CR>
-        inoremap <silent> / <C-R>=<SID>completeTransliterate(<SID>hookBackSlash('hira'))<CR>
+        call s:mapMlh()
         echo "mlh enable!"
     else
         let g:mlh_enable = 0
-        iunmap f/
-        iunmap k/
-        iunmap /
+        call s:unmapMlh()
         echo "mlh disable!"
     endif
 endfunction
+
+function! s:mapMlh()
+    inoremap <silent> f/  <C-R>=<SID>hookBackSlash('hira')<CR>
+    inoremap <silent> k/  <C-R>=<SID>hookBackSlash('kana')<CR>
+    inoremap <silent> / <C-R>=<SID>completeTransliterate(<SID>hookBackSlash('hira'))<CR>
+endf
+
+function! s:unmapMlh()
+    execute "iunmap f/"
+    execute "iunmap k/"
+    execute "iunmap /"
+endfun
+
+let g:mlh_enable = 1
+call <SID>mapMlh()
+
+augroup Mlh4Unite
+    autocmd!
+    auto Filetype unite :call <SID>unmapMlh()
+augroup END
+
 
 
 function! s:completeTransliterate(str)
@@ -93,7 +107,6 @@ function! s:hookBackSlash(dict_prefix)
 
         normal vby
         let cword = expand("<cword>")
-
         execute 'normal!' '`['. 'v' .'`]h"_d'
         let jp_str = s:translateJapanese(dict, cword)
         return jp_str
@@ -102,7 +115,9 @@ function! s:hookBackSlash(dict_prefix)
         execute "setlocal iskeyword=" . tmp_iskeyword
         execute "set virtualedit=" . tmp_virtualedit
         let @" = tmp_reg
-        let @* = tmp_reg
+        if has('x11')
+            let @* = tmp_reg
+        endif
     endtry
 endf
 
