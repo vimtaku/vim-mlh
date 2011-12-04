@@ -3,10 +3,18 @@
 let s:hira_dict = hira_dict#get()
 let s:kana_dict = kana_dict#get()
 
-
 command! ToggleMlhKeymap :call <SID>toggle_vim_mlh_map()
 nnoremap mm :call <SID>toggle_vim_mlh_map()<CR>
-inoremap ./ <C-R>=<SID>toggle_vim_mlh_map()<CR><BS>
+inoremap <C-k> <C-R>=<SID>toggle_vim_mlh_map()<CR>
+
+
+"" for debug
+inoremap <silent> 7  <C-R>=<SID>hookBackSlash('hira')<CR>
+inoremap <silent> 8  <C-R>=<SID>completeTransliterate('hogehogeq/まち')<CR>
+
+inoremap <silent> q/ q/
+
+
 
 
 function! s:toggle_vim_mlh_map()
@@ -19,6 +27,7 @@ function! s:toggle_vim_mlh_map()
         call s:unmapMlh()
         echo "mlh disable!"
     endif
+    return ""
 endfunction
 
 function! s:mapMlh()
@@ -28,9 +37,12 @@ function! s:mapMlh()
 endf
 
 function! s:unmapMlh()
-    execute "iunmap f/"
-    execute "iunmap k/"
-    execute "iunmap /"
+    try
+        iunmap f/
+        execute "iunmap k/"
+        execute "iunmap /"
+    catch
+    endtry
 endfun
 
 let g:mlh_enable = 1
@@ -44,13 +56,35 @@ augroup END
 
 
 function! s:completeTransliterate(str)
-    let ary = g:GoogleTransliterate(a:str)
+    let str = s:chomp(a:str)
+    if str =~ "^\s*$"
+        return ""
+    endif
+    if str =~ "\n"
+        return ""
+    endif
+
+    if matchend(str, '.*q/') != -1
+        let no_trans = substitute(matchstr(str, '.*q/'), 'q/', '', 'g')
+        let trans_tgt_str = str[matchend(str, '.*q/') : strlen(str)]
+        let ary = g:GoogleTransliterate(trans_tgt_str)
+        call insert(ary, [no_trans, [no_trans]], 0)
+    else
+        let ary = g:GoogleTransliterate(str)
+    endif
+
+
     for candidates in (ary)
         let key = candidates[0]
         let value = candidates[1]
         call complete(col('.'), value)
     endfor
     return ""
+endfunction
+
+
+function! s:chomp(str)
+    return substitute(a:str, "\n", "", "g")
 endfunction
 
 
@@ -93,7 +127,13 @@ function! s:c2jc(dict, c)
     return a:c
 endf
 
+
+
 function! s:hookBackSlash(dict_prefix)
+    if col(".") == 1
+        return ""
+    endif
+
     let tmp_reg = @"
     let tmp_virtualedit = &virtualedit
     let tmp_iskeyword = &l:iskeyword
@@ -104,12 +144,24 @@ function! s:hookBackSlash(dict_prefix)
         setlocal iskeyword+=-
         setlocal iskeyword+=,
         setlocal iskeyword+=.
+        setlocal iskeyword+=/
 
         normal vby
-        let cword = expand("<cword>")
-        execute 'normal!' '`['. 'v' .'`]h"_d'
-        let jp_str = s:translateJapanese(dict, cword)
-        return jp_str
+        execute 'normal!' '`['. 'v' .'`]h'
+        normal! d
+        let cword = @"
+
+        if matchend(cword, '.*q/') != -1
+            let no_trans = matchstr(cword, '.*q/')
+            let trans_tgt_str = cword[matchend(cword, '.*q/') : strlen(cword)]
+
+            let jp_str = s:translateJapanese(dict, trans_tgt_str)
+            return no_trans . jp_str
+        else
+            let jp_str = s:translateJapanese(dict, cword)
+            return jp_str
+        endif
+
     finally
         "" back
         execute "setlocal iskeyword=" . tmp_iskeyword
