@@ -1,0 +1,39 @@
+vim-mlh.txt
+
+Author: vimtaku <vimtaku@gmail.com>
+License: not decided yet.
+
+INTRODUCTION						*vim-mlh-introduction*
+
+vim-mlh is plugin that converting roman charactor to japanese character.
+This plugin is similar with emacs/mlh.el.
+
+REQUREMENT						*vim-mlh-requirement*
+
+ - Internet connection
+  - This plugin requires internet connection because to use google transliterate API.
+  - http://www.google.com/intl/ja/ime/cgiapi.html
+ - webapi.vim
+  - This plugin requires webapi.vim for request above one.
+  - https://github.com/mattn/webapi-vim
+
+
+SEE ALSO					*vim-mlh-seealso*
+http://www.google.com/intl/ja/ime/cgiapi.html
+http://axion.ee.uec.ac.jp/japanese/tools/emacs/mlh.html
+
+
+CHANGELOG					*vim-mlh-changelog*
+
+2011-12-31 many refactoring and change convert method.
+ We have to type `/<Space>' for conversion.(before, we can only type `/' but it was changed.)
+ The fix reason is for include slash string. (e.g. '/usr/bin/perlq/habennridesu.'
+ But I think typing `/<Space>' is not annoying for us.
+
+ Add for visual mode conversion.
+ Visual mode conversion is convert method in visual mode.
+ We can only use google transliterate convert on visual mode now(but I think it's enough.).
+
+2011-12-24 bug fix.
+2011-11-23 Initial commit.
+

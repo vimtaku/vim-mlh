@@ -1,4 +1,4 @@
-" vim:set fen fdm=marker:
+" vim:set fen fdm=marker:fenc=utf8
 
 let s:hira_dict = hira_dict#get()
 let s:kana_dict = kana_dict#get()
@@ -6,23 +6,8 @@ let s:kana_dict = kana_dict#get()
 
 function! vim_mlh#completeTransliterate(str)
     let str = s:chomp(a:str)
-    if str =~ "^\s*$"
-        return ""
-    endif
-    if str =~ "\n"
-        return ""
-    endif
 
-    if matchend(str, '.*q/') != -1
-        let no_trans = substitute(matchstr(str, '.*q/'), 'q/', '', 'g')
-        let trans_tgt_str = str[matchend(str, '.*q/') : strlen(str)]
-        let ary = g:GoogleTransliterate(trans_tgt_str)
-        call insert(ary, [no_trans, [no_trans]], 0)
-    else
-        let ary = g:GoogleTransliterate(str)
-    endif
-
-
+    let ary = g:GoogleTransliterate(str)
     for candidates in (ary)
         let key = candidates[0]
         let value = candidates[1]
@@ -78,15 +63,91 @@ function! s:c2jc(dict, c)
 endf
 
 
-function! vim_mlh#hookBackSlash(dict_prefix)
-    if col(".") == 1
+function! vim_mlh#translate()
+    let save_line    = line(".")
+    let save_tailcut = s:tailcut()
+    let strendpos    = col('.')
+    let strstartpos  = s:getConvertStartPos()
+    if (strstartpos >= strendpos)
         return ""
+    endif
+
+    let prevpos = 999999
+    let keep_visual_mode = 0
+    while (line('.') == save_line)
+        let prevpos = col('.')
+        if keep_visual_mode == 0
+            normal! v
+        endif
+        normal! f/
+        if prevpos == col('.')
+            break
+        endif
+
+        let l = getline('.')
+        let char = l[col('.')-2]
+        if has_key(s:map_trans_method_dict, char)
+           let str = vim_mlh#getTranslateRegion()
+           let Method = s:map_trans_method_dict[ char ]
+           let ret =  Method( str[0:-3] )
+           execute("normal! i". ret)
+           normal! l
+           let keep_visual_mode = 0
+        elseif (col('.') == col('$')-1)
+            let str = vim_mlh#getTranslateRegion()
+            call vim_mlh#completeTransliterate( vim_mlh#roman2hira(str[0:-2]) )
+        else
+           let keep_visual_mode = 1
+        endif
+    endwhile
+
+    if mode() == 'v'
+        normal! v
     endif
 
     let tmp_reg = @"
     let tmp_virtualedit = &virtualedit
+    try
+        set virtualedit=all
+        normal! $
+        let @" = (save_tailcut == ' ') ? '' : save_tailcut
+        let save_cursor = getpos(".")
+        normal! ""p
+        call setpos('.', save_cursor)
+        normal! l
+    finally
+        execute "set virtualedit=" . tmp_virtualedit
+        let @" = tmp_reg
+        if has('x11')
+            let @* = tmp_reg
+        endif
+    endtry
+
+    return ""
+endf
+
+
+function! s:tailcut()
+    let tmp_reg = @"
+    let tmp_virtualedit = &virtualedit
+    try
+        set virtualedit=all
+        normal! D
+        let cword = @"
+        return cword
+    finally
+        execute "set virtualedit=" . tmp_virtualedit
+        let @" = tmp_reg
+        if has('x11')
+            let @* = tmp_reg
+        endif
+    endtry
+endf
+
+
+function! s:getConvertStartPos()
+    let tmp_virtualedit = &virtualedit
     let tmp_iskeyword = &l:iskeyword
-    execute("let dict=s:". a:dict_prefix ."_dict")
 
     try
         set virtualedit=all
@@ -95,24 +156,29 @@ function! vim_mlh#hookBackSlash(dict_prefix)
         setlocal iskeyword+=.
         setlocal iskeyword+=/
 
+        normal! hb
+        return col('.')
+    finally
+        execute "setlocal iskeyword=" . tmp_iskeyword
+        execute "set virtualedit=" . tmp_virtualedit
+    endtry
+endfu
 
-        normal! hvby
-        execute 'normal!' '`['. 'v' .'`]'
+function! vim_mlh#getTranslateRegion()
+    let tmp_reg = @"
+    let tmp_virtualedit = &virtualedit
+    let tmp_iskeyword = &l:iskeyword
+
+    try
+        set virtualedit=all
+        setlocal iskeyword+=-
+        setlocal iskeyword+=,
+        setlocal iskeyword+=.
+        setlocal iskeyword+=/
+
         normal! d
-
         let cword = @"
-
-        if matchend(cword, '.*q/') != -1
-            let no_trans = matchstr(cword, '.*q/')
-            let trans_tgt_str = cword[matchend(cword, '.*q/') : strlen(cword)]
-
-            let jp_str = s:translateJapanese(dict, trans_tgt_str)
-            return no_trans . jp_str
-        else
-            let jp_str = s:translateJapanese(dict, cword)
-            return jp_str
-        endif
-
+        return cword
     finally
         execute "setlocal iskeyword=" . tmp_iskeyword
         execute "set virtualedit=" . tmp_virtualedit
@@ -121,6 +187,14 @@ function! vim_mlh#hookBackSlash(dict_prefix)
             let @* = tmp_reg
         endif
     endtry
+endf
+
+
+function! vim_mlh#roman2hira(str)
+    return s:translateJapanese(s:hira_dict, a:str)
+endf
+function! vim_mlh#roman2kana(str)
+    return s:translateJapanese(s:kana_dict, a:str)
 endf
 
 function! s:translateJapanese(dict, str)
@@ -144,4 +218,15 @@ function! s:translateJapanese(dict, str)
 
     return join(s:result, '')
 endf
+
+
+function! s:const(str)
+    return a:str
+endf
+
+let s:map_trans_method_dict = {
+\'f' : function('vim_mlh#roman2hira'),
+\'q' : function('s:const'),
+\'k' : function('vim_mlh#roman2kana')
+\}
 

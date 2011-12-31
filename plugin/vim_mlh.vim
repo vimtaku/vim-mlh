@@ -1,8 +1,40 @@
 " vim:set fen fdm=marker:
+" Basic {{{1
 
+
+"" alias {{{2
+vnoremap <Plug>(vim_mlh-visualTransliterate)
+\ :<C-u>startinsert<CR><C-R>=<SID>visualTransliterate()<CR>
+"" end alias }}}2
+
+
+"" mappings
 command! ToggleMlhKeymap :call <SID>toggle_vim_mlh_map()
 inoremap <C-k> <C-R>=<SID>toggle_vim_mlh_map()<CR>
-inoremap <silent> q/ q/
+vmap /<Space> <Plug>(vim_mlh-visualTransliterate)
+
+
+
+function! s:visualTransliterate()
+    let tmp_reg = @"
+    let tmp_virtualedit = &virtualedit
+
+    try
+        set virtualedit=all
+        normal! gv""y
+        normal! gvd
+        let cword = @"
+        call vim_mlh#completeTransliterate( vim_mlh#roman2hira(cword) )
+    finally
+        execute "set virtualedit=" . tmp_virtualedit
+        let @" = tmp_reg
+        if has('x11')
+            let @* = tmp_reg
+        endif
+    endtry
+
+    return ""
+endf
 
 
 function! s:toggle_vim_mlh_map()
@@ -18,17 +50,13 @@ endfunction
 
 function! s:mapMlh()
     let g:mlh_enable = 1
-    inoremap <silent> f/  <C-R>=vim_mlh#hookBackSlash('hira')<CR>
-    inoremap <silent> k/  <C-R>=vim_mlh#hookBackSlash('kana')<CR>
-    inoremap <silent> / <C-R>=vim_mlh#completeTransliterate(vim_mlh#hookBackSlash('hira'))<CR>
+    inoremap <silent> /<Space> /<C-R>=vim_mlh#translate()<CR>
 endf
 
 function! s:unmapMlh()
     let g:mlh_enable = 0
     try
-        iunmap f/
-        execute "iunmap k/"
-        execute "iunmap /"
+        iunmap /<Space>
     catch
     endtry
 endfun
@@ -40,5 +68,4 @@ augroup Mlh4Unite
     autocmd!
     auto Filetype unite :call <SID>unmapMlh()
 augroup END
-
 
