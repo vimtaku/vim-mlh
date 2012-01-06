@@ -14,7 +14,6 @@ inoremap <C-k> <C-R>=<SID>toggle_vim_mlh_map()<CR>
 vmap /<Space> <Plug>(vim_mlh-visualTransliterate)
 
 
-
 function! s:visualTransliterate()
     let tmp_reg = @"
     let tmp_virtualedit = &virtualedit
@@ -63,9 +62,4 @@ endfun
 
 let g:mlh_enable = 1
 call <SID>mapMlh()
-
-augroup Mlh4Unite
-    autocmd!
-    auto Filetype unite :call <SID>unmapMlh()
-augroup END
 
