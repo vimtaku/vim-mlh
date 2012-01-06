@@ -50,12 +50,14 @@ endfunction
 function! s:mapMlh()
     let g:mlh_enable = 1
     inoremap <silent> /<Space> /<C-R>=vim_mlh#translate()<CR>
+    inoremap //<Space> //<Space>
 endf
 
 function! s:unmapMlh()
     let g:mlh_enable = 0
     try
         iunmap /<Space>
+        iunmap //<Space> //<Space>
     catch
     endtry
 endfun
