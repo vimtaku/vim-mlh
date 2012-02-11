@@ -22,6 +22,7 @@ function! s:chomp(str)
 endfunction
 
 
+"あふれる思い風に流されて踏み出す事少し
 
 function! s:nr2byte(nr)
   if a:nr < 0x80
@@ -62,7 +63,6 @@ function! s:c2jc(dict, c)
     return a:c
 endf
 
-
 function! vim_mlh#translate()
     let save_line    = line(".")
     let save_tailcut = s:tailcut()
@@ -71,6 +71,7 @@ function! vim_mlh#translate()
     if (strstartpos >= strendpos)
         return ""
     endif
+
 
     let prevpos = 999999
     let keep_visual_mode = 0
@@ -91,15 +92,17 @@ function! vim_mlh#translate()
            let Method = s:map_trans_method_dict[ char ]
            let ret =  Method( str[0:-3] )
            execute("normal! i". ret)
+           call feedkeys("\<C-g>u", 'n')
            normal! l
            let keep_visual_mode = 0
         elseif (col('.') == col('$')-1)
-            let str = vim_mlh#getTranslateRegion()
-            call vim_mlh#completeTransliterate( vim_mlh#roman2hira(str[0:-2]) )
+           let str = vim_mlh#getTranslateRegion()
+           call vim_mlh#completeTransliterate( vim_mlh#roman2hira(str[0:-2]) )
         else
            let keep_visual_mode = 1
         endif
     endwhile
+
 
     if mode() == 'v'
         normal! v

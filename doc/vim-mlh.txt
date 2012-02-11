@@ -1,11 +1,32 @@
 vim-mlh.txt
 
 Author: vimtaku <vimtaku@gmail.com>
-License: not decided yet.
+Updated : 2012-02-11
+Version : 0.0.4
+License : MIT license {{{
+
+	Permission is hereby granted, free of charge, to any person obtaining
+	a copy of this software and associated documentation files (the
+	"Software"), to deal in the Software without restriction, including
+	without limitation the rights to use, copy, modify, merge, publish,
+	distribute, sublicense, and/or sell copies of the Software, and to
+	permit persons to whom the Software is furnished to do so, subject to
+	the following conditions:
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
+	
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
 
 INTRODUCTION						*vim-mlh-introduction*
 
-vim-mlh is plugin that converting roman charactor to japanese character.
+vim-mlh is plugin that converting roman character to japanese character.
 This plugin is similar with emacs/mlh.el.
 
 REQUREMENT						*vim-mlh-requirement*
@@ -25,7 +46,15 @@ http://axion.ee.uec.ac.jp/japanese/tools/emacs/mlh.html
 
 CHANGELOG					*vim-mlh-changelog*
 
-2011-12-31 many refactoring and change convert method.
+2011-2-11 v0.0.4 critical bug fix. correspondence in unite buffer.
+ Start versioning.
+ Sometimes, I cannot translate when I type /<Space>.
+ I can't find reason why, but I can find to avoid it, so change to use it.
+ Additionaly, I created autogroup that ignore convert in unite buffer
+ because it's very annoying when I use unite.vim.
+
+
+2011-12-31 v0.0.3 many refactoring and change convert method.
  We have to type `/<Space>' for conversion.(before, we can only type `/' but it was changed.)
  The fix reason is for include slash string. (e.g. '/usr/bin/perlq/habennridesu.'
  But I think typing `/<Space>' is not annoying for us.
@@ -34,6 +63,6 @@ CHANGELOG					*vim-mlh-changelog*
  Visual mode conversion is convert method in visual mode.
  We can only use google transliterate convert on visual mode now(but I think it's enough.).
 
-2011-12-24 bug fix.
-2011-11-23 Initial commit.
+2011-12-24 v0.0.2 bug fix.
+2011-11-23 v0.0.1 Initial commit.
 
