@@ -3,7 +3,6 @@
 let s:hira_dict = hira_dict#get()
 let s:kana_dict = kana_dict#get()
 
-
 function! vim_mlh#completeTransliterate(str)
     let str = s:chomp(a:str)
 
@@ -16,13 +15,9 @@ function! vim_mlh#completeTransliterate(str)
     return ""
 endfunction
 
-
 function! s:chomp(str)
     return substitute(a:str, "\n", "", "g")
 endfunction
-
-
-"あふれる思い風に流されて踏み出す事少し
 
 function! s:nr2byte(nr)
   if a:nr < 0x80
