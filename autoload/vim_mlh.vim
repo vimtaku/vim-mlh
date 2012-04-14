@@ -43,7 +43,7 @@ endfunction
 function! g:GoogleTransliterate(word)
     let word = substitute(a:word, '\s', ',', 'g')
     let url = "http://www.google.com/transliterate"
-    let res = http#get(url, { "langpair": "ja-Hira|ja", "text": word }, {})
+    let res = webapi#http#get(url, { "langpair": "ja-Hira|ja", "text": word }, {})
     let str = iconv(res.content, "utf-8", &encoding)
     let str = substitute(str, '\\u\(\x\x\x\x\)', '\=s:nr2enc_char("0x".submatch(1))', 'g')
     let str = substitute(str, "\n", "", "g")
