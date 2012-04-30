@@ -5,12 +5,12 @@ let s:kana_dict = kana_dict#get()
 
 function! vim_mlh#completeTransliterate(str)
     let str = s:chomp(a:str)
-
     let ary = g:GoogleTransliterate(str)
     for candidates in (ary)
         let key = candidates[0]
-        let value = candidates[1]
-        call complete(col('.'), value)
+        let candidate_list = candidates[1]
+        let candidate_list = s:AddCandidateFromSkk(key, candidate_list)
+        call complete(col('.'), candidate_list)
     endfor
     return ""
 endfunction
@@ -67,7 +67,6 @@ function! vim_mlh#translate()
         return ""
     endif
 
-
     let prevpos = 999999
     let keep_visual_mode = 0
     while (line('.') == save_line)
@@ -98,7 +97,6 @@ function! vim_mlh#translate()
         endif
     endwhile
 
-
     if mode() == 'v'
         normal! v
     endif
@@ -124,7 +122,6 @@ function! vim_mlh#translate()
     return ""
 endf
 
-
 function! s:tailcut()
     let tmp_reg = @"
     let tmp_virtualedit = &virtualedit
@@ -141,7 +138,6 @@ function! s:tailcut()
         endif
     endtry
 endf
-
 
 function! s:getConvertStartPos()
     let tmp_virtualedit = &virtualedit
@@ -187,7 +183,6 @@ function! vim_mlh#getTranslateRegion()
     endtry
 endf
 
-
 function! vim_mlh#roman2hira(str)
     return s:translateJapanese(s:hira_dict, a:str)
 endf
@@ -217,14 +212,31 @@ function! s:translateJapanese(dict, str)
     return join(s:result, '')
 endf
 
-
 function! s:const(str)
     return a:str
 endf
+
+"" search from skk
+function! s:AddCandidateFromSkk(key, candidate_list)
+    if (!exists('g:vim_mlh_has_jisyo_buf'))
+        return a:candidate_list
+    endif
+
+    let candidates_from_skk = SearchFromSkkJisyoAsList('^'. a:key, 0, 1)
+    if len(candidates_from_skk) > 0
+        for cand_skk in (candidates_from_skk[1:-1])
+            call add(a:candidate_list, cand_skk)
+        endfor
+    endif
+
+    return a:candidate_list
+endfunction
+
 
 let s:map_trans_method_dict = {
 \'f' : function('vim_mlh#roman2hira'),
 \'q' : function('s:const'),
 \'k' : function('vim_mlh#roman2kana')
 \}
+
 

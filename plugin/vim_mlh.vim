@@ -1,5 +1,9 @@
 " vim:set fen fdm=marker:
-" Basic {{{1
+
+if exists('g:loaded_vim_mlh')
+  finish
+endif
+let g:loaded_vim_mlh = 1
 
 
 "" alias {{{2
@@ -34,7 +38,6 @@ function! s:visualTransliterate()
     return ""
 endf
 
-
 function! s:toggle_vim_mlh_map()
     if g:mlh_enable == 0
         call s:mapMlh()
@@ -61,7 +64,6 @@ function! s:unmapMlh()
     endtry
 endfun
 
-
 function! s:autoCmdToggleMlh()
     if &filetype == 'unite'
         call <SID>unmapMlh()
@@ -70,12 +72,121 @@ function! s:autoCmdToggleMlh()
     call <SID>mapMlh()
 endf
 
+"" Define augroup {{{2
 augroup VimMlhForUniteBuffer
  au!
  auto InsertEnter * :call <SID>autoCmdToggleMlh()
 augroup END
+"" end Define augroup {{{2
 
 
 let g:mlh_enable = 1
 call <SID>mapMlh()
+
+"" define private function {{{2
+
+""" by thinca http://d.hatena.ne.jp/thinca/20111228/1325077104
+"" Call a script local function.
+"" Usage:
+"" - S('local_func')
+""   -> call s:local_func() in current file.
+"" - S('plugin/hoge.vim:local_func', 'string', 10)
+""   -> call s:local_func('string', 10) in *plugin/hoge.vim.
+"" - S('plugin/hoge:local_func("string", 10)')
+""   -> call s:local_func("string", 10) in *plugin/hoge(.vim)?.
+function! s:S(f, ...)
+ let [file, func] =a:f =~# ':' ?  split(a:f, ':') : [expand('%:p'), a:f]
+ let fname = matchstr(func, '^\w*')
+
+ " Get sourced scripts.
+ redir =>slist
+ silent scriptnames
+ redir END
+
+ let filepat = '\V' . substitute(file, '\\', '/', 'g') . '\v%(\.vim)?$'
+ for s in split(slist, "\n")
+   let p = matchlist(s, '^\s*\(\d\+\):\s*\(.*\)$')
+   if empty(p)
+     continue
+   endif
+   let [nr, sfile] = p[1 : 2]
+   let sfile = fnamemodify(sfile, ':p:gs?\\?/?')
+   if sfile =~# filepat &&
+   \    exists(printf("*\<SNR>%d_%s", nr, fname))
+     let cfunc = printf("\<SNR>%d_%s", nr, func)
+     break
+   endif
+ endfor
+
+ if !exists('nr')
+   echoerr Not sourced: ' . file
+   return
+ elseif !exists('cfunc')
+   let file = fnamemodify(file, ':p')
+   echoerr printf(
+   \    'File found, but function is not defined: %s: %s()', file, fname)
+   return
+ endif
+
+ return 0 <= match(func, '^\w*\s*(.*)\s*$')
+ \      ? eval(cfunc) : call(cfunc, a:000)
+endfunction
+"" end define private function }}}2
+
+
+
+""" below script is dependent on skk.vim {{{2
+
+if !exists('g:skk_large_jisyo')
+    finish
+endif
+if !exists('g:skk_version')
+    finish
+endif
+
+let s:jisyo_buf = s:S('plugin/skk.vim:SkkGetJisyoBuf', 'skk_large_jisyo')
+let g:vim_mlh_has_jisyo_buf = 1
+
+" arg
+"  key: search target word
+"  okuri: 0 or 1 # okuri is needed or not
+" return
+"  found -> dict line
+"  not found -> ''
+function! SearchFromJisyoBuf(key, okuri)
+    let default_enc = &enc
+    if a:okuri
+        let i = s:jisyo_buf[0][0] + 1
+    else
+        let i = s:jisyo_buf[0][1] + 1
+    endif
+    let key = escape(a:key, '$.*\[]') . '\m\C'
+    let converted_key = iconv(key, &enc, 'eucJP')
+    set encoding=euc-jp
+    let match_str = matchstr(s:jisyo_buf, converted_key, i)
+    exec('set encoding='. default_enc)
+    return match_str
+endf
+
+function! SearchFromSkkJisyo(key, okuri)
+    let str = SearchFromJisyoBuf(a:key, a:okuri)
+    let str_trimspace = substitute(str, ' ', '', 'g')
+    return iconv(str_trimspace, 'eucJP', &enc)
+endfu
+
+"" key, okuri, remove_caption
+function! SearchFromSkkJisyoAsList(...)
+    if (a:3)
+        let list = split(SearchFromSkkJisyo(a:1, a:2), '/')
+        let remove_caption_list = []
+        for candidate in (list)
+            call add(remove_caption_list, substitute(candidate, ';.*$', '', 'g'))
+        endfor
+        return remove_caption_list
+    else
+        return split(SearchFromSkkJisyo(a:1, a:2), '/')
+    endif
+endfu
+
+""" }}}2
 

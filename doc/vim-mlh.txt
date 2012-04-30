@@ -1,8 +1,8 @@
 vim-mlh.txt
 
 Author: vimtaku <vimtaku@gmail.com>
-Updated : 2012-02-11
-Version : 0.0.4
+Updated : 2012-04-30
+Version : 0.0.5
 License : MIT license {{{
 
 	Permission is hereby granted, free of charge, to any person obtaining
@@ -26,8 +26,9 @@ License : MIT license {{{
 
 INTRODUCTION						*vim-mlh-introduction*
 
-vim-mlh is plugin that converting roman character to japanese character.
-This plugin is similar with emacs/mlh.el.
+ vim-mlh is plugin that converting roman character to japanese character.
+ This plugin is similar with emacs/mlh.el.
+ You can convert character when type like [characters]<SPACE>/ .
 
 REQUREMENT						*vim-mlh-requirement*
 
@@ -37,16 +38,37 @@ REQUREMENT						*vim-mlh-requirement*
  - webapi.vim
   - This plugin requires webapi.vim for request above one.
   - https://github.com/mattn/webapi-vim
+ - (skk.vim & skk-large-jisyo) # not requirement
+  - If you have skk.vim and skk-large-jisyo,
+    vim-mlh search words from jisyo and add it into candidates.
+    So, I recommend you prepare skk.vim and skk-large jisyo.
+   - you should define some setting in your .vimrc before
+     this script loaded.
+   - For example,
+    "{{{3
+        let g:skk_control_j_key = ""
+        let g:skk_large_jisyo = "$HOME/local/dict/SKK-JISYO.L"
+    "}}}
+
+  - skk.vim source url is https://github.com/tyru/skk.vim
+  - skk-large-jisyo url is http://openlab.ring.gr.jp/skk/wiki/wiki.cgi?page=SKK%BC%AD%BD%F1#p7
 
 
 SEE ALSO					*vim-mlh-seealso*
-http://www.google.com/intl/ja/ime/cgiapi.html
-http://axion.ee.uec.ac.jp/japanese/tools/emacs/mlh.html
+ - http://www.google.com/intl/ja/ime/cgiapi.html
+ - http://axion.ee.uec.ac.jp/japanese/tools/emacs/mlh.html
+ - http://d.hatena.ne.jp/vimtaku/20111224/1324713931
 
 
 CHANGELOG					*vim-mlh-changelog*
 
-2011-2-11 v0.0.4 critical bug fix. correspondence in unite buffer.
+2012-4-29 v0.0.5 using skk.vim and skk-large-dictionary.
+ This program has a problem that google api returns a little candidate.
+ Actually, it was critical problem for ime. so I fix it.
+ I continue to use google api for analysis context,
+  and I use skk-large jisyo to search candidates. It sounds good.
+
+2012-2-11 v0.0.4 critical bug fix. fix for in unite buffer.
  Start versioning.
  Sometimes, I cannot translate when I type /<Space>.
  I can't find reason why, but I can find to avoid it, so change to use it.
