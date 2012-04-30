@@ -1,8 +1,8 @@
 vim-mlh.txt
 
 Author: vimtaku <vimtaku@gmail.com>
-Updated : 2012-04-30
-Version : 0.0.5
+Updated : 2012-05-01
+Version : 0.0.6
 License : MIT license {{{
 
 	Permission is hereby granted, free of charge, to any person obtaining
@@ -24,16 +24,30 @@ License : MIT license {{{
 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 }}}
 
-INTRODUCTION						*vim-mlh-introduction*
+==============================================================================
+CONTENTS					*vim-mlh-contents*
+
+INTRODUCTION					*vim-mlh-introduction*
+REQUREMENT					*vim-mlh-requirement*
+INTERFACE					*vim-mlh-interface*
+ KEY MAPPINGS					*vim-mlh-key-mappings*
+ MAPPING EXAMPLE				*vim-mlh-mapping-example*
+SEE ALSO					*vim-mlh-seealso*
+CHANGELOG					*vim-mlh-changelog*
+
+==============================================================================
+INTRODUCTION					*vim-mlh-introduction*
 
  vim-mlh is plugin that converting roman character to japanese character.
  This plugin is similar with emacs/mlh.el.
- You can convert character when type like [characters]<SPACE>/ .
+ You can convert character when type like [characters]/<SPACE> .
 
-REQUREMENT						*vim-mlh-requirement*
+==============================================================================
+REQUREMENT					*vim-mlh-requirement*
 
  - Internet connection
-  - This plugin requires internet connection because to use google transliterate API.
+  - This plugin requires internet connection
+     because to use google transliterate API.
   - http://www.google.com/intl/ja/ime/cgiapi.html
  - webapi.vim
   - This plugin requires webapi.vim for request above one.
@@ -51,18 +65,64 @@ REQUREMENT						*vim-mlh-requirement*
     "}}}
 
   - skk.vim source url is https://github.com/tyru/skk.vim
-  - skk-large-jisyo url is http://openlab.ring.gr.jp/skk/wiki/wiki.cgi?page=SKK%BC%AD%BD%F1#p7
+  - skk-large-jisyo url is
+      http://openlab.ring.gr.jp/skk/wiki/wiki.cgi?page=SKK%BC%AD%BD%F1#p7
+
+==============================================================================
+INTERFACE					*vim-mlh-interface*
+
+------------------------------------------------------------------------------
+COMMANDS					*vim-mlh-commands*
+
+						*:ToggleVimMlhKeymap*
+
+:ToggleVimMlhKeymap
+	Switching to use transliterate when type /<Space> on insert mode.
 
 
+------------------------------------------------------------------------------
+KEY MAPPINGS					*vim-mlh-key-mappings*
+
+<Plug>(vim_mlh-retransliterate)		*<Plug>(vim_mlh-retransliterate)*
+		Do retransliterate in normal mode.
+		If you have already start roman characters, it may be removed.
+
+<Plug>(vim_mlh-i_retransliterate)	*<Plug>(vim_mlh-i_retransliterate)*
+		Do retransliterate in insert mode.
+		If you have already start roman characters, it may be removed.
+
+<Plug>(vim_mlh-v_transliterate)		*<Plug>(vim_mlh-v_transliterate)*
+		You can transliterate your selection range.
+		Actually, this mapping has set as default like below.
+		 vmap /<Space> <Plug>(vim_mlh-v_transliterate)
+
+MAPPING EXAMPLE					*vim-mlh-mapping-example*
+	imap <C-b> <Plug>(vim_mlh-i_retransliterate)<C-n>
+	nmap <C-b> <Plug>(vim_mlh-retransliterate)<C-n>
+
+==============================================================================
 SEE ALSO					*vim-mlh-seealso*
  - http://www.google.com/intl/ja/ime/cgiapi.html
  - http://axion.ee.uec.ac.jp/japanese/tools/emacs/mlh.html
  - http://d.hatena.ne.jp/vimtaku/20111224/1324713931
 
 
+==============================================================================
 CHANGELOG					*vim-mlh-changelog*
 
-2012-4-29 v0.0.5 using skk.vim and skk-large-dictionary.
+2012-5-01 v0.0.6 improve undo and Fix document.
+ - improve undo
+  vim mlh got useful undo functions.
+  For example, when you type "どうせ奈良itukaha",
+  and you notice mistake of kanji,
+  you can use <Plug>(vim_mlh-i_retransliterate)<C-n>.
+  Then, you can retransliterate it. Isn't it useful?
+ - document updated
+ - remove default map
+  I think it is rarely used so remove from default maps.
+  "inoremap <C-k> <C-R>=<SID>toggle_vim_mlh_map()<CR>
+
+2012-4-30 v0.0.5 using skk.vim and skk-large-dictionary.
  This program has a problem that google api returns a little candidate.
  Actually, it was critical problem for ime. so I fix it.
  I continue to use google api for analysis context,
@@ -71,20 +131,26 @@ CHANGELOG					*vim-mlh-changelog*
 2012-2-11 v0.0.4 critical bug fix. fix for in unite buffer.
  Start versioning.
  Sometimes, I cannot translate when I type /<Space>.
- I can't find reason why, but I can find to avoid it, so change to use it.
+ I can't find out reason why, but I found method to avoid it,
+  so change to use it.
  Additionaly, I created autogroup that ignore convert in unite buffer
  because it's very annoying when I use unite.vim.
 
 
 2011-12-31 v0.0.3 many refactoring and change convert method.
- We have to type `/<Space>' for conversion.(before, we can only type `/' but it was changed.)
- The fix reason is for include slash string. (e.g. '/usr/bin/perlq/habennridesu.'
+ We have to type `/<Space>' for conversion.
+ (before, we can only type `/' but it was changed.)
+ The fix reason is for include slash string.
+     (e.g. '/usr/bin/perlq/habennridesu.'
  But I think typing `/<Space>' is not annoying for us.
 
  Add for visual mode conversion.
  Visual mode conversion is convert method in visual mode.
- We can only use google transliterate convert on visual mode now(but I think it's enough.).
+ We can only use google transliterate convert on visual mode now
+ (but I think it's enough.).
 
 2011-12-24 v0.0.2 bug fix.
 2011-11-23 v0.0.1 Initial commit.
 
+==============================================================================
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

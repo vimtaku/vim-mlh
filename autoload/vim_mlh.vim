@@ -86,7 +86,6 @@ function! vim_mlh#translate()
            let Method = s:map_trans_method_dict[ char ]
            let ret =  Method( str[0:-3] )
            execute("normal! i". ret)
-           call feedkeys("\<C-g>u", 'n')
            normal! l
            let keep_visual_mode = 0
         elseif (col('.') == col('$')-1)

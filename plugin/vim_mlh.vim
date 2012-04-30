@@ -7,14 +7,22 @@ let g:loaded_vim_mlh = 1
 
 
 "" alias {{{2
-vnoremap <Plug>(vim_mlh-visualTransliterate)
-\ :<C-u>startinsert<CR><C-R>=<SID>visualTransliterate()<CR>
+
+vnoremap <Plug>(vim_mlh-v_transliterate)
+        \ :<C-u>startinsert<CR><C-R>=<SID>visualTransliterate()<CR>
+nnoremap <Plug>(vim_mlh-retransliterate)
+        \ ua/<C-r>=vim_mlh#translate()<CR>
+        "\ ua/<C-r>=vim_mlh#translate()<CR>
+inoremap <Plug>(vim_mlh-i_retransliterate)
+        \ <ESC>ua/<C-r>=vim_mlh#translate()<CR>
+
 "" end alias }}}2
 
-"" mappings
-command! ToggleMlhKeymap :call <SID>toggle_vim_mlh_map()
-inoremap <C-k> <C-R>=<SID>toggle_vim_mlh_map()<CR>
-vmap /<Space> <Plug>(vim_mlh-visualTransliterate)
+"" default command & mappings
+command! ToggleVimMlhKeymap :call <SID>toggle_vim_mlh_map()
+vmap /<Space> <Plug>(vim_mlh-v_transliterate)
+
+"inoremap <C-k> <C-R>=<SID>toggle_vim_mlh_map()<CR>
 
 
 function! s:visualTransliterate()
@@ -39,24 +47,24 @@ function! s:visualTransliterate()
 endf
 
 function! s:toggle_vim_mlh_map()
-    if g:mlh_enable == 0
+    if g:vim_mlh_enable == 0
         call s:mapMlh()
-        echo "mlh enable!"
+        echo "vim mlh enable!"
     else
         call s:unmapMlh()
-        echo "mlh disable!"
+        echo "vim mlh disable!"
     endif
     return ""
 endfunction
 
 function! s:mapMlh()
-    let g:mlh_enable = 1
-    inoremap <silent> /<Space> <ESC>a/<C-r>=vim_mlh#translate()<CR>
+    let g:vim_mlh_enable = 1
+    inoremap <silent> /<Space> <C-G>u<ESC>a/<C-r>=vim_mlh#translate()<CR>
     inoremap //<Space> //<Space>
 endf
 
 function! s:unmapMlh()
-    let g:mlh_enable = 0
+    let g:vim_mlh_enable = 0
     try
         iunmap /<Space>
         iunmap //<Space> //<Space>
@@ -77,10 +85,10 @@ augroup VimMlhForUniteBuffer
  au!
  auto InsertEnter * :call <SID>autoCmdToggleMlh()
 augroup END
-"" end Define augroup {{{2
+"" end Define augroup }}}
 
 
-let g:mlh_enable = 1
+let g:vim_mlh_enable = 1
 call <SID>mapMlh()
 
 "" define private function {{{2
@@ -189,4 +197,5 @@ function! SearchFromSkkJisyoAsList(...)
 endfu
 
 """ }}}2
+
 
