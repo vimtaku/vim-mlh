@@ -67,17 +67,20 @@ function! s:unmapMlh()
     let g:vim_mlh_enable = 0
     try
         iunmap /<Space>
-        iunmap //<Space> //<Space>
+        iunmap //<Space>
     catch
     endtry
 endfun
 
+let g:_vim_mlh_disabled_for_unite = 0
 function! s:autoCmdToggleMlh()
-    if &filetype == 'unite'
+    if &filetype == 'unite' && g:vim_mlh_enable != 0
+        let g:_vim_mlh_disabled_for_unite = 1
         call <SID>unmapMlh()
-        return
+    elseif g:_vim_mlh_disabled_for_unite != 0
+        call <SID>mapMlh()
+        let g:_vim_mlh_disabled_for_unite = 0
     endif
-    call <SID>mapMlh()
 endf
 
 "" Define augroup {{{2
