@@ -1,11 +1,22 @@
 " vim:set fen fdm=marker:fenc=utf8
 
-let s:hira_dict = hira_dict#get()
-let s:kana_dict = kana_dict#get()
+"" constants
+let s:hira_dict    = hira_dict#get()
+let s:kana_dict    = kana_dict#get()
+let s:hankana_dict = hankana_dict#get()
+let s:map_trans_method_dict = {
+\'q' : function('vim_mlh#const'),
+\'f' : function('vim_mlh#roman2hira'),
+\'k' : function('vim_mlh#roman2kana'),
+\'h' : function('vim_mlh#roman2hankana'),
+\}
+
+
+"" public
 
 function! vim_mlh#completeTransliterate(str)
     let str = s:chomp(a:str)
-    let ary = g:GoogleTransliterate(str)
+    let ary = s:GoogleTransliterate(str)
     for candidates in (ary)
         let key = candidates[0]
         let candidate_list = candidates[1]
@@ -14,49 +25,6 @@ function! vim_mlh#completeTransliterate(str)
     endfor
     return ""
 endfunction
-
-function! s:chomp(str)
-    return substitute(a:str, "\n", "", "g")
-endfunction
-
-function! s:nr2byte(nr)
-  if a:nr < 0x80
-    return nr2char(a:nr)
-  elseif a:nr < 0x800
-    return nr2char(a:nr/64+192).nr2char(a:nr%64+128)
-  else
-    return nr2char(a:nr/4096%16+224).nr2char(a:nr/64%64+128).nr2char(a:nr%64+128)
-  endif
-endfunction
-
-function! s:nr2enc_char(charcode)
-  if &encoding == 'utf-8'
-    return nr2char(a:charcode)
-  endif
-  let char = s:nr2byte(a:charcode)
-  if strlen(char) > 1
-    let char = strtrans(iconv(char, 'utf-8', &encoding))
-  endif
-  return char
-endfunction
-
-function! g:GoogleTransliterate(word)
-    let word = substitute(a:word, '\s', ',', 'g')
-    let url = "http://www.google.com/transliterate"
-    let res = webapi#http#get(url, { "langpair": "ja-Hira|ja", "text": word }, {})
-    let str = iconv(res.content, "utf-8", &encoding)
-    let str = substitute(str, '\\u\(\x\x\x\x\)', '\=s:nr2enc_char("0x".submatch(1))', 'g')
-    let str = substitute(str, "\n", "", "g")
-    let arr = eval(str)
-    return arr
-endfunction
-
-function! s:c2jc(dict, c)
-    if has_key(a:dict, a:c)
-        return a:dict[a:c]
-    endif
-    return a:c
-endf
 
 function! vim_mlh#translate()
     let save_line    = line(".")
@@ -101,9 +69,8 @@ function! vim_mlh#translate()
     endif
 
     let tmp_reg = @"
-    let tmp_virtualedit = &virtualedit
+    let memo_virtualedit = s:set_virtual_edit_and_return_current('all')
     try
-        set virtualedit=all
         normal! $
         let @" = (save_tailcut == ' ') ? '' : save_tailcut
         let save_cursor = getpos(".")
@@ -111,76 +78,36 @@ function! vim_mlh#translate()
         call setpos('.', save_cursor)
         normal! l
     finally
-        execute "set virtualedit=" . tmp_virtualedit
-        let @" = tmp_reg
-        if has('x11')
-            let @* = tmp_reg
-        endif
+        call s:restore_virtualedit(memo_virtualedit)
+        call s:restore_tmp_register(tmp_reg)
     endtry
 
     return ""
 endf
 
-function! s:tailcut()
-    let tmp_reg = @"
-    let tmp_virtualedit = &virtualedit
-    try
-        set virtualedit=all
-        normal! D
-        let cword = @"
-        return cword
-    finally
-        execute "set virtualedit=" . tmp_virtualedit
-        let @" = tmp_reg
-        if has('x11')
-            let @* = tmp_reg
-        endif
-    endtry
-endf
-
-function! s:getConvertStartPos()
-    let tmp_virtualedit = &virtualedit
-    let tmp_iskeyword = &l:iskeyword
-
-    try
-        set virtualedit=all
-        setlocal iskeyword+=-
-        setlocal iskeyword+=,
-        setlocal iskeyword+=.
-        setlocal iskeyword+=/
-
-        normal! hb
-        return col('.')
-    finally
-        execute "setlocal iskeyword=" . tmp_iskeyword
-        execute "set virtualedit=" . tmp_virtualedit
-    endtry
+function! vim_mlh#restore_tmp_register(tmp_reg)
+    call s:restore_tmp_register(a:tmp_reg)
 endfu
 
 function! vim_mlh#getTranslateRegion()
     let tmp_reg = @"
-    let tmp_virtualedit = &virtualedit
+    let memo_virtualedit = s:set_virtual_edit_and_return_current('all')
     let tmp_iskeyword = &l:iskeyword
 
     try
-        set virtualedit=all
-        setlocal iskeyword+=-
-        setlocal iskeyword+=,
-        setlocal iskeyword+=.
-        setlocal iskeyword+=/
+        call s:set_local_iskeywords('-,./')
 
         normal! d
         let cword = @"
         return cword
     finally
         execute "setlocal iskeyword=" . tmp_iskeyword
-        execute "set virtualedit=" . tmp_virtualedit
-        let @" = tmp_reg
-        if has('x11')
-            let @* = tmp_reg
-        endif
+        call s:restore_virtualedit(memo_virtualedit)
+        call s:restore_tmp_register(tmp_reg)
     endtry
 endf
+
+
 
 function! vim_mlh#roman2hira(str)
     return s:translateJapanese(s:hira_dict, a:str)
@@ -188,30 +115,10 @@ endf
 function! vim_mlh#roman2kana(str)
     return s:translateJapanese(s:kana_dict, a:str)
 endf
-
-function! s:translateJapanese(dict, str)
-    let i = 0
-    let s:result = []
-    let part = ""
-    for e in ( range(0, strlen(a:str)) )
-        let part = a:str[i : e]
-        let hira = s:c2jc(a:dict, part)
-        if (part != hira)
-            "" henkan succeed
-            call add(s:result, hira)
-            let i = i+ strlen(part)
-            let part = ""
-        endif
-    endfor
-
-    if (part != '')
-        call add(s:result, part)
-    endif
-
-    return join(s:result, '')
+function! vim_mlh#roman2hankana(str)
+    return s:translateJapanese(s:hankana_dict, a:str)
 endf
-
-function! s:const(str)
+function! vim_mlh#const(str)
     return a:str
 endf
 
@@ -232,10 +139,134 @@ function! s:AddCandidateFromSkk(key, candidate_list)
 endfunction
 
 
-let s:map_trans_method_dict = {
-\'f' : function('vim_mlh#roman2hira'),
-\'q' : function('s:const'),
-\'k' : function('vim_mlh#roman2kana')
-\}
+"" private libraries
+
+function! s:chomp(str)
+    return substitute(a:str, "\n", "", "g")
+endfunction
+
+function! s:nr2byte(nr)
+  if a:nr < 0x80
+    return nr2char(a:nr)
+  elseif a:nr < 0x800
+    return nr2char(a:nr/64+192).nr2char(a:nr%64+128)
+  else
+    return nr2char(a:nr/4096%16+224).nr2char(a:nr/64%64+128).nr2char(a:nr%64+128)
+  endif
+endfunction
+
+function! s:nr2enc_char(charcode)
+  if &encoding == 'utf-8'
+    return nr2char(a:charcode)
+  endif
+  let char = s:nr2byte(a:charcode)
+  if strlen(char) > 1
+    let char = strtrans(iconv(char, 'utf-8', &encoding))
+  endif
+  return char
+endfunction
+
+function! s:get_key_by_dictionary(dict, key)
+    if has_key(a:dict, a:key)
+        return a:dict[a:key]
+    endif
+    return a:key
+endf
+
+function! s:tailcut()
+    let tmp_reg = @"
+    let memo_virtualedit = s:set_virtual_edit_and_return_current('all')
+    try
+        normal! D
+        let cword = @"
+        return cword
+    finally
+        call s:restore_virtualedit(memo_virtualedit)
+        call s:restore_tmp_register(tmp_reg)
+    endtry
+endf
+
+function! s:set_local_iskeywords(chars)
+    for idx in ( range(0, strlen(a:chars)) )
+        let char = a:chars[ idx ]
+        execute "setlocal iskeyword+=" . char
+    endfor
+endfun
+
+
+"" useful functions
+"" set virtualedit and return previous virtualedit
+function! s:set_virtual_edit_and_return_current(newvirtualedit)
+    let tmp_virtualedit = &virtualedit
+    execute "set virtualedit=" . a:newvirtualedit
+    return tmp_virtualedit
+endfu
+
+function! s:restore_virtualedit(tmp_virtualedit)
+    execute "set virtualedit=" . a:tmp_virtualedit
+endfu
+
+function! s:restore_tmp_register(tmp_reg)
+    let @" = a:tmp_reg
+    if &clipboard =~ 'unnamed'
+        let @* = a:tmp_reg
+    endif
+    if has('x11')
+        let @* = a:tmp_reg
+    endif
+endfun
+
+
+
+
+
+
+
+function! s:getConvertStartPos()
+    let memo_virtualedit = s:set_virtual_edit_and_return_current('all')
+    let tmp_iskeyword = &l:iskeyword
+    try
+        call s:set_local_iskeywords('-,./')
+
+        normal! hb
+        return col('.')
+    finally
+        execute "setlocal iskeyword=" . tmp_iskeyword
+        call s:restore_virtualedit(memo_virtualedit)
+    endtry
+endfu
+
+function! s:translateJapanese(dict, str)
+    let i = 0
+    let s:result = []
+    let part = ""
+    for idx in ( range(0, strlen(a:str)) )
+        let part = a:str[i : idx]
+        let value = s:get_key_by_dictionary(a:dict, part)
+        if (part != value)
+            "" henkan succeed
+            call add(s:result, value)
+            let i = i + strlen(part)
+            let part = ""
+        endif
+    endfor
+
+    if (part != '')
+        call add(s:result, part)
+    endif
+
+    return join(s:result, '')
+endf
+
+function! s:GoogleTransliterate(word)
+    let word = substitute(a:word, '\s', ',', 'g')
+    let url = "http://www.google.com/transliterate"
+    let res = webapi#http#get(url, { "langpair": "ja-Hira|ja", "text": word }, {})
+    let str = iconv(res.content, "utf-8", &encoding)
+    let str = substitute(str, '\\u\(\x\x\x\x\)', '\=s:nr2enc_char("0x".submatch(1))', 'g')
+    let str = substitute(str, "\n", "", "g")
+    let arr = eval(str)
+    return arr
+endfunction
 
 

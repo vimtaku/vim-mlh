@@ -4,7 +4,6 @@ Author: vimtaku <vimtaku@gmail.com>
 Updated : 2012-05-01
 Version : 0.0.6
 License : MIT license {{{
-
 	Permission is hereby granted, free of charge, to any person obtaining
 	a copy of this software and associated documentation files (the
 	"Software"), to deal in the Software without restriction, including
@@ -28,6 +27,7 @@ License : MIT license {{{
 CONTENTS					*vim-mlh-contents*
 
 INTRODUCTION					*vim-mlh-introduction*
+ CONVERT_CHARACTERS					*vim-mlh-convert_characters*
 REQUREMENT					*vim-mlh-requirement*
 INTERFACE					*vim-mlh-interface*
  KEY MAPPINGS					*vim-mlh-key-mappings*
@@ -40,7 +40,13 @@ INTRODUCTION					*vim-mlh-introduction*
 
  vim-mlh is plugin that converting roman character to japanese character.
  This plugin is similar with emacs/mlh.el.
- You can convert character when type like [characters]/<SPACE> .
+ You can convert character when type like [convert_characters]/<SPACE> .
+
+CONVERT_CHARACTERS				*vim-mlh-convert_characters*
+ q: no conversion
+ f: convert to hiragana. hogef/<Space> convert to ほげ
+ k: convert to katakana. hogek/<Space> convert to ホゲ
+ h: convert to hankaku kana. hogeh/<Space> convert to ﾎｹﾞ
 
 ==============================================================================
 REQUREMENT					*vim-mlh-requirement*
@@ -109,6 +115,8 @@ SEE ALSO					*vim-mlh-seealso*
 
 ==============================================================================
 CHANGELOG					*vim-mlh-changelog*
+
+2012-12-29 v0.0.7 add hankana conversion and refactoring
 
 2012-5-01 v0.0.6 improve undo and Fix document.
  - improve undo

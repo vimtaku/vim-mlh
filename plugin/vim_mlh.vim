@@ -37,10 +37,7 @@ function! s:visualTransliterate()
         call vim_mlh#completeTransliterate( vim_mlh#roman2hira(cword) )
     finally
         execute "set virtualedit=" . tmp_virtualedit
-        let @" = tmp_reg
-        if has('x11')
-            let @* = tmp_reg
-        endif
+        call vim_mlh#restore_tmp_register(tmp_reg)
     endtry
 
     return ""
