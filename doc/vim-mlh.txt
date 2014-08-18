@@ -1,8 +1,8 @@
 vim-mlh.txt
 
 Author: vimtaku <vimtaku@gmail.com>
-Updated : 2014-02-06
-Version : 0.0.7
+Updated : 2014-08-18
+Version : 0.0.8
 License : MIT license {{{
 	Permission is hereby granted, free of charge, to any person obtaining
 	a copy of this software and associated documentation files (the
@@ -47,6 +47,7 @@ CONVERT_CHARACTERS				*vim-mlh-convert_characters*
  f: convert to hiragana. hogef/<Space> convert to ほげ
  k: convert to katakana. hogek/<Space> convert to ホゲ
  h: convert to hankaku kana. hogeh/<Space> convert to ﾎｹﾞ
+ z: convert to zenkaku ascii. Hogez/<Space> convert to Ｈｏｇｅ
 
 ==============================================================================
 REQUREMENT					*vim-mlh-requirement*
@@ -115,6 +116,8 @@ SEE ALSO					*vim-mlh-seealso*
 
 ==============================================================================
 CHANGELOG					*vim-mlh-changelog*
+
+2014-8-18 v0.0.9 add zenkaku ascii conversion
 
 2014-2-6 v0.0.8 bug fix
 

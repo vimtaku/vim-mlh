@@ -4,11 +4,13 @@
 let s:hira_dict    = hira_dict#get()
 let s:kana_dict    = kana_dict#get()
 let s:hankana_dict = hankana_dict#get()
+let s:zen_ascii_dict = zen_ascii_dict#get()
 let s:map_trans_method_dict = {
 \'q' : function('vim_mlh#const'),
 \'f' : function('vim_mlh#roman2hira'),
 \'k' : function('vim_mlh#roman2kana'),
 \'h' : function('vim_mlh#roman2hankana'),
+\'z' : function('vim_mlh#roman2zenascii'),
 \}
 
 
@@ -117,6 +119,9 @@ function! vim_mlh#roman2kana(str)
 endf
 function! vim_mlh#roman2hankana(str)
     return s:translateJapanese(s:hankana_dict, a:str)
+endf
+function! vim_mlh#roman2zenascii(str)
+    return s:translateJapanese(s:zen_ascii_dict, a:str)
 endf
 function! vim_mlh#const(str)
     return a:str
