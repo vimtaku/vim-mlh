@@ -7,11 +7,13 @@ let s:hankana_dict = hankana_dict#get()
 let s:zen_ascii_dict = zen_ascii_dict#get()
 let s:map_trans_method_dict = {
 \'q' : function('vim_mlh#const'),
-\'f' : function('vim_mlh#roman2hira'),
-\'k' : function('vim_mlh#roman2kana'),
-\'h' : function('vim_mlh#roman2hankana'),
-\'z' : function('vim_mlh#roman2zenascii'),
+\'f' : function('vim_mlh#roman2hira_with_complete'),
+\'k' : function('vim_mlh#roman2kana_with_complete'),
+\'h' : function('vim_mlh#roman2hankana_with_complete'),
+\'z' : function('vim_mlh#roman2zenascii_with_complete'),
 \}
+let s:roman_to_translates = ["hira", "kana", "hankana", "zen_ascii"]
+
 
 
 "" public
@@ -109,6 +111,32 @@ function! vim_mlh#getTranslateRegion()
     endtry
 endf
 
+
+function! s:_translate_roman_to(str, translate)
+    let candidates = []
+    call add(candidates, s:translateJapanese(eval("s:". a:translate ."_dict"), a:str))
+    for t in s:roman_to_translates
+      if a:translate == t
+        continue
+      endif
+      call add(candidates, eval("s:translateJapanese(s:" . t . "_dict, a:str)"))
+    endfor
+    call complete(col('.'), candidates )
+endf
+
+
+function! vim_mlh#roman2hira_with_complete(str)
+  call s:_translate_roman_to(a:str, "hira")
+endf
+function! vim_mlh#roman2kana_with_complete(str)
+  call s:_translate_roman_to(a:str, "kana")
+endf
+function! vim_mlh#roman2hankana_with_complete(str)
+  call s:_translate_roman_to(a:str, "hankana")
+endf
+function! vim_mlh#roman2zenascii_with_complete(str)
+  call s:_translate_roman_to(a:str, "zen_ascii")
+endf
 
 
 function! vim_mlh#roman2hira(str)
